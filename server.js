@@ -10,11 +10,6 @@ dotenv.config();
 
 // Middleware
 const allowedOrigins = [
-  "http://localhost:3000",
-  "https://dhanushvel123.github.io"
-];
-
-const allowedOrigins = [
   "https://dhanushvel123.github.io",
   "http://localhost:3000"
 ];
@@ -34,7 +29,6 @@ app.use((req, res, next) => {
 
   next();
 });
-
 
 
 app.use(express.json());
