@@ -11,7 +11,7 @@ dotenv.config();
 // Middleware
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: "https://dhanushvel123.github.io/PetShop/",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
