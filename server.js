@@ -9,13 +9,25 @@ const app = express();
 dotenv.config();
 
 // Middleware
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://dhanushvel123.github.io"
+];
+
 app.use(
   cors({
-    origin: "https://petshop-server-ht6q.onrender.com",
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
+
 
 app.use(express.json());
 
