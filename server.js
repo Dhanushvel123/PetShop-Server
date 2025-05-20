@@ -11,11 +11,12 @@ dotenv.config();
 // Middleware
 app.use(
   cors({
-    origin: "https://dhanushvel123.github.io/PetShop/",
+    origin: "https://petshop-server-ht6q.onrender.com",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
+
 app.use(express.json());
 
 // JWT secret
