@@ -4,9 +4,9 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const verifyToken = require("../middleware/auth");
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123"; // You should set this securely in production
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123"; // Store securely in production
 
-// ✅ Admin Login for Admin Panel
+// ✅ Admin Login (used for admin panel access)
 router.post("/admin-login", async (req, res) => {
   const { username, password } = req.body;
 
@@ -16,17 +16,11 @@ router.post("/admin-login", async (req, res) => {
 
   try {
     const user = await User.findOne({ username });
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // Ensure user is marked as admin and password matches admin pass
-    if (!user.isAdmin || password !== ADMIN_PASSWORD) {
+    if (!user || !user.isAdmin || password !== ADMIN_PASSWORD) {
       return res.status(401).json({ message: "Invalid admin credentials" });
     }
 
-    res.json({ message: "Admin authenticated successfully", user: { id: user._id, username: user.username } });
+    res.json({ message: "Admin authenticated successfully", user: { id: user._id, username: user.username, isAdmin: true } });
   } catch (err) {
     console.error("Admin login error:", err);
     res.status(500).json({ message: "Internal server error" });
@@ -44,7 +38,7 @@ router.get("/profile", verifyToken, async (req, res) => {
   }
 });
 
-// ✅ Update user profile and optionally request admin access
+// ✅ Update user profile (username + request admin rights)
 router.put("/profile", verifyToken, async (req, res) => {
   const { username, isAdmin, adminPassword } = req.body;
 
@@ -72,7 +66,7 @@ router.put("/profile", verifyToken, async (req, res) => {
   }
 });
 
-// ✅ Update email/password
+// ✅ Update user email or password
 router.put("/profile/update-credentials", verifyToken, async (req, res) => {
   const { email, password } = req.body;
 
@@ -102,9 +96,14 @@ router.put("/profile/update-credentials", verifyToken, async (req, res) => {
   }
 });
 
-// ✅ Get all users (admin use)
-router.get("/admin", async (req, res) => {
+// ✅ Admin-only: Get all users
+router.get("/admin/users", verifyToken, async (req, res) => {
   try {
+    const currentUser = await User.findById(req.user.id);
+    if (!currentUser?.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized: Admin access required" });
+    }
+
     const users = await User.find().select("-password");
     res.status(200).json(users);
   } catch (err) {
@@ -112,11 +111,11 @@ router.get("/admin", async (req, res) => {
   }
 });
 
-// ✅ Toggle user role (admin use only)
-router.put("/:id/role", verifyToken, async (req, res) => {
+// ✅ Admin-only: Toggle a user’s role
+router.put("/admin/users/:id/role", verifyToken, async (req, res) => {
   try {
     const currentUser = await User.findById(req.user.id);
-    if (!currentUser || !currentUser.isAdmin) {
+    if (!currentUser?.isAdmin) {
       return res.status(403).json({ message: "Unauthorized: Admin access required" });
     }
 
